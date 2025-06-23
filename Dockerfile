@@ -17,4 +17,4 @@ RUN apt-get update && apt-get install -y \
 RUN pip install --no-cache-dir -r requirements.txt
 
 # Comando para iniciar la aplicación usando la variable de entorno PORT
-CMD ["sh", "-c", "gunicorn -w 4 -b 0.0.0.0:${PORT} app:app"]
+CMD ["sh", "-c", "gunicorn -w 1 -b 0.0.0.0:${PORT} app:app"]

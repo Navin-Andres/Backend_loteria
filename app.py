@@ -45,16 +45,21 @@ def get_top_3_frequent():
 # Endpoint para subir el archivo Excel
 @app.route('/api/upload', methods=['POST'])
 def upload_file():
-    if 'file' not in request.files:
-        return jsonify({'error': 'No file part'}), 400
-    file = request.files['file']
-    if file.filename == '':
-        return jsonify({'error': 'No selected file'}), 400
-    if file and file.filename.endswith('.xlsx'):
-        file_path = os.path.join('/tmp', 'baloto1.xlsx')
-        file.save(file_path)
-        return jsonify({'message': 'File uploaded successfully'}), 200  # Responde rápido
-    return jsonify({'error': 'Invalid file format'}), 400
+    try:
+        if 'file' not in request.files:
+            return jsonify({'error': 'No file part'}), 400
+        file = request.files['file']
+        if file.filename == '':
+            return jsonify({'error': 'No selected file'}), 400
+        if file and file.filename.endswith('.xlsx'):
+            file_path = os.path.join('/tmp', 'baloto1.xlsx')
+            file.save(file_path)
+            print(f"Archivo guardado en {file_path}")
+            return jsonify({'message': 'File uploaded successfully'}), 200
+        return jsonify({'error': 'Invalid file format'}), 400
+    except Exception as e:
+        print(f"Error en upload_file: {e}")
+        return jsonify({'error': 'Internal server error'}), 500
 
 # Nuevo endpoint para procesar el archivo
 @app.route('/api/process', methods=['GET'])
