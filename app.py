@@ -5,7 +5,7 @@ import random
 import os
 
 app = Flask(__name__)
-CORS(app, resources={r"/api/*": {"origins": ["http://localhost:*", "http://192.168.1.9"]}})
+CORS(app, resources={r"/api/*": {"origins": ["https://backend-loteria-sn12.onrender.com"]}})  # Ajusta esta URL
 
 # Cargar y procesar el archivo Excel
 def load_historical_data(file_path='baloto1.xlsx'):
