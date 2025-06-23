@@ -53,12 +53,17 @@ def upload_file():
     if file and file.filename.endswith('.xlsx'):
         file_path = os.path.join('/tmp', 'baloto1.xlsx')
         file.save(file_path)
-        try:
-            pd.read_excel(file_path)  # Validación básica
-            return jsonify({'message': 'File uploaded successfully'}), 200
-        except Exception as e:
-            return jsonify({'error': f'Invalid Excel file: {str(e)}'}), 400
+        return jsonify({'message': 'File uploaded successfully'}), 200  # Responde rápido
     return jsonify({'error': 'Invalid file format'}), 400
+
+# Nuevo endpoint para procesar el archivo
+@app.route('/api/process', methods=['GET'])
+def process_file():
+    df = load_historical_data()
+    if df.empty:
+        return jsonify({'error': 'No data available or file invalid'}), 400
+    top_three = get_top_3_frequent()
+    return jsonify({'top_three_numbers': top_three}), 200
 
 # Endpoint para generar el sorteo
 @app.route('/api/sorteo', methods=['GET'])
