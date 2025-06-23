@@ -1,20 +1,18 @@
-# Usa una imagen base de Python slim para un entorno ligero
+# Usa una imagen base oficial de Python
 FROM python:3.9-slim
 
 # Establece el directorio de trabajo
 WORKDIR /app
 
-# Copia los archivos del proyecto
+# Copia los archivos de requisitos y el código
+COPY requirements.txt .
 COPY . .
 
-# Instala dependencias del sistema necesarias para compilar pandas
-RUN apt-get update && apt-get install -y \
-    build-essential \
-    python3-dev \
-    && rm -rf /var/lib/apt/lists/*
-
-# Instala las dependencias de Python
+# Instala las dependencias
 RUN pip install --no-cache-dir -r requirements.txt
 
-# Comando para iniciar la aplicación usando la variable de entorno PORT
+# Expone el puerto
+EXPOSE $PORT
+
+# Comando para ejecutar la aplicación
 CMD ["sh", "-c", "gunicorn -w 1 -b 0.0.0.0:${PORT} app:app"]
