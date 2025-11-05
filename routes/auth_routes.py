@@ -57,6 +57,33 @@ def test_auth():
         }
     }), 200
 
+@auth_bp.route('/session', methods=['POST'])
+def create_session():
+    try:
+        data = request.get_json()
+        if not data:
+            return jsonify({'error': 'No data received'}), 400
+            
+        phone_number = data.get('phone_number')
+        timestamp = data.get('timestamp')
+        
+        if not phone_number:
+            return jsonify({'error': 'Missing phone number'}), 400
+            
+        # Crear nueva sesión
+        new_session = Session(
+            phone_number=phone_number,
+            timestamp=datetime.fromisoformat(timestamp) if timestamp else datetime.utcnow()
+        )
+        
+        db.session.add(new_session)
+        db.session.commit()
+        
+        return jsonify({'message': 'Session created successfully'}), 200
+    except Exception as e:
+        logger.error('Error creating session: %s', str(e))
+        return jsonify({'error': f'Server error: {str(e)}'}), 500
+
 @auth_bp.route('/recover-password', methods=['POST'])
 def recover_password():
     try:
