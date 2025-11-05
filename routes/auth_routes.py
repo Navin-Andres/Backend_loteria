@@ -47,6 +47,16 @@ def login():
         return jsonify({'message': 'Login successful'}), 200
     return jsonify({'error': 'Invalid credentials'}), 401
 
+@auth_bp.route('/test', methods=['GET'])
+def test_auth():
+    return jsonify({
+        'message': 'Auth routes are working',
+        'endpoints': {
+            'login': 'POST /api/login',
+            'register': 'POST /api/register'
+        }
+    }), 200
+
 @auth_bp.route('/recover-password', methods=['POST'])
 def recover_password():
     try:
