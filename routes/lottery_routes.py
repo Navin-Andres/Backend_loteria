@@ -1,23 +1,80 @@
-from flask import Blueprint, jsonify
-import pandas as pd
+from flask import Blueprint, jsonify, request
+from models import db, LotteryResult, FrequentNumber, Statistics
 import random
 import logging
+from collections import Counter
+from datetime import datetime
 
 logger = logging.getLogger(__name__)
 lottery_bp = Blueprint('lottery', __name__)
 
 def get_top_3_frequent():
     try:
-        df = pd.read_excel('/tmp/baloto1.xlsx', sheet_name='Hoja1')
-        all_numbers = []
-        for i in range(1, 6):  # Solo las primeras 5 balotas (no incluir la roja)
-            all_numbers.extend(df[f'balota{i}'].tolist())
-        
-        # Contar frecuencias y obtener top 3
-        freq = pd.Series(all_numbers).value_counts()
-        top_3 = freq.head(3).index.tolist()
-        return top_3
+        # Obtener números frecuentes de la base de datos
+        frequent_numbers = FrequentNumber.query.order_by(FrequentNumber.frequency.desc()).limit(3).all()
+        return [num.number for num in frequent_numbers]
     except Exception as e:
+        logger.error(f"Error getting top 3 frequent numbers: {str(e)}")
+        return []
+
+@lottery_bp.route('/lottery/results', methods=['POST'])
+def save_lottery_result():
+    try:
+        data = request.json
+        numbers = data.get('numbers')
+        lottery_type = data.get('type', 'standard')
+        phone_number = data.get('phone_number')
+
+        # Guardar el resultado
+        new_result = LotteryResult(
+            numbers=','.join(map(str, numbers)),
+            type=lottery_type,
+            created_by=phone_number
+        )
+        db.session.add(new_result)
+
+        # Actualizar números frecuentes
+        for number in numbers:
+            freq_num = FrequentNumber.query.filter_by(
+                number=number,
+                type=lottery_type
+            ).first()
+            
+            if freq_num:
+                freq_num.frequency += 1
+                freq_num.last_seen = datetime.utcnow()
+            else:
+                freq_num = FrequentNumber(
+                    number=number,
+                    type=lottery_type
+                )
+                db.session.add(freq_num)
+
+        db.session.commit()
+        return jsonify({"message": "Result saved successfully"}), 200
+    except Exception as e:
+        logger.error(f"Error saving lottery result: {str(e)}")
+        db.session.rollback()
+        return jsonify({"error": str(e)}), 500
+
+@lottery_bp.route('/lottery/results', methods=['GET'])
+def get_lottery_results():
+    try:
+        lottery_type = request.args.get('type', 'standard')
+        results = LotteryResult.query.filter_by(type=lottery_type)\
+            .order_by(LotteryResult.timestamp.desc())\
+            .limit(10)\
+            .all()
+        
+        return jsonify([{
+            'id': r.id,
+            'numbers': [int(n) for n in r.numbers.split(',')],
+            'timestamp': r.timestamp.isoformat(),
+            'created_by': r.created_by
+        } for r in results]), 200
+    except Exception as e:
+        logger.error(f"Error getting lottery results: {str(e)}")
+        return jsonify({"error": str(e)}), 500
         print(f"Error getting frequent numbers: {e}")
         return []
 
