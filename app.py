@@ -46,7 +46,8 @@ try:
     db.init_app(app)
     # Verificar la conexión
     with app.app_context():
-        db.session.execute('SELECT 1')
+        from sqlalchemy import text
+        db.session.execute(text('SELECT 1'))
         logger.info("Conexión a la base de datos establecida exitosamente")
 except Exception as e:
     logger.error(f"Error al conectar con la base de datos: {str(e)}")
@@ -91,7 +92,8 @@ def home():
 def status():
     try:
         # Verificar base de datos
-        db.session.execute('SELECT 1')
+        from sqlalchemy import text
+        db.session.execute(text('SELECT 1'))
         db_status = "Connected"
     except Exception as e:
         db_status = f"Error: {str(e)}"
