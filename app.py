@@ -28,14 +28,29 @@ CORS(app, resources={r"/api/*": {
 
 # Configurar la base de datos
 database_url = os.getenv('DATABASE_URL')
-if database_url and database_url.startswith("postgres://"):
+if not database_url:
+    logger.error("DATABASE_URL no está configurada en las variables de entorno")
+    raise ValueError("DATABASE_URL environment variable is not set")
+
+# Asegurarse de que la URL use postgresql:// en lugar de postgres://
+if database_url.startswith("postgres://"):
     database_url = database_url.replace("postgres://", "postgresql://", 1)
+
+logger.info(f"Configurando base de datos con URL: {database_url.split('@')[1]}")  # Log seguro sin credenciales
 
 app.config['SQLALCHEMY_DATABASE_URI'] = database_url
 app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
-app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
+app.config['SQLALCHEMY_ECHO'] = True  # Esto mostrará las consultas SQL en los logs
 
-db.init_app(app)
+try:
+    db.init_app(app)
+    # Verificar la conexión
+    with app.app_context():
+        db.session.execute('SELECT 1')
+        logger.info("Conexión a la base de datos establecida exitosamente")
+except Exception as e:
+    logger.error(f"Error al conectar con la base de datos: {str(e)}")
+    raise
 
 # Manejador de errores global
 @app.errorhandler(Exception)
