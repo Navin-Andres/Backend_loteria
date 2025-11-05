@@ -40,6 +40,10 @@ app.register_blueprint(auth_bp, url_prefix='/api')
 app.register_blueprint(lottery_bp, url_prefix='/api')
 app.register_blueprint(file_bp, url_prefix='/api')
 
+@app.route('/')
+def home():
+    return {"message": "Backend server is running"}, 200
+
 @app.route('/init')
 def init_db():
     try:
