@@ -72,7 +72,8 @@ app.register_blueprint(file_bp, url_prefix='/api')
 def home():
     try:
         # Verificar la conexión a la base de datos
-        db.session.execute('SELECT 1')
+        from sqlalchemy import text
+        db.session.execute(text('SELECT 1'))
         db_status = "Database connection OK"
     except Exception as e:
         db_status = f"Database error: {str(e)}"
