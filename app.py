@@ -18,12 +18,13 @@ logging.basicConfig(level=logging.DEBUG)
 logger = logging.getLogger(__name__)
 
 app = Flask(__name__)
-CORS(app, resources={r"/api/*": {
+CORS(app, resources={r"/*": {
     "origins": "*",
-    "methods": ["GET", "POST", "OPTIONS"],
-    "allow_headers": ["Content-Type"],
-    "expose_headers": ["Content-Type"],
-    "supports_credentials": True
+    "methods": ["GET", "POST", "PUT", "DELETE", "OPTIONS"],
+    "allow_headers": ["Content-Type", "Authorization", "Accept"],
+    "expose_headers": ["Content-Type", "Authorization"],
+    "supports_credentials": True,
+    "max_age": 3600
 }})
 
 # Configurar la base de datos
