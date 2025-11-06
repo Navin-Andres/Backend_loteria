@@ -58,7 +58,7 @@ def test_auth():
     }), 200
 
 @auth_bp.route('/session', methods=['POST'])
-def create_session():
+def register_user_session():
     try:
         data = request.get_json()
         if not data:
