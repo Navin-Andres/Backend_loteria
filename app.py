@@ -37,7 +37,13 @@ if not database_url:
 if database_url.startswith("postgres://"):
     database_url = database_url.replace("postgres://", "postgresql://", 1)
 
-logger.info(f"Configurando base de datos con URL: {database_url.split('@')[1]}")  # Log seguro sin credenciales
+# Configuración adicional de SSL para PostgreSQL
+if 'dpg-' in database_url:  # Detectar si es una URL de DigitalOcean
+    database_url += "?sslmode=require"
+
+logger.info("Intentando conectar a la base de datos...")
+logger.info(f"Host: {database_url.split('@')[1].split('/')[0]}")  # Log seguro del host
+logger.info(f"Database: {database_url.split('/')[-1].split('?')[0]}")  # Log seguro del nombre de la base de datos
 
 app.config['SQLALCHEMY_DATABASE_URI'] = database_url
 app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
@@ -47,6 +53,9 @@ try:
     db.init_app(app)
     # Verificar la conexión
     with app.app_context():
+        logger.info("Verificando conexión a la base de datos...")
+        db.engine.connect()
+        logger.info("Conexión a la base de datos establecida exitosamente")
         from sqlalchemy import text
         db.session.execute(text('SELECT 1'))
         logger.info("Conexión a la base de datos establecida exitosamente")
